@@ -1,0 +1,25 @@
+{
+  "tested_at": "2026-10-06T05:47:25.159Z",
+  "checks": [
+    {
+      "name": "非法股票返回400",
+      "status": "PASS"
+    },
+    {
+      "name": "未知项目返回404",
+      "status": "PASS"
+    },
+    {
+      "name": "空搜索返回400",
+      "status": "PASS"
+    },
+    {
+      "name": "真实行情JSON与禁止公共缓存",
+      "status": "PASS"
+    },
+    {
+      "name": "真实中文名称搜索JSON",
+      "status": "PASS"
+    }
+  ]
+}
