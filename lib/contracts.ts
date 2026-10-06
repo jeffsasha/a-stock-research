@@ -1,0 +1,11 @@
+export type Channel = "quote" | "daily" | "financials" | "fund-flow" | "news" | "reports" | "forecast";
+export type Part = { code:string; channel:string; status:"ok"|"empty"|"error"; data:unknown; as_of:string|null; fetched_at:string; cache:string; sources:{name:string;url:string}[]; warnings:string[]; error?:string };
+export type Parts = Partial<Record<Channel,Part>>;
+export type Stock = {code:string;market:string;name:string};
+export type Quote = Stock & {price:number;previousClose:number|null;open:number|null;high:number|null;low:number|null;change:number|null;changePct:number|null;amountYuan:number|null;turnoverPct:number|null;peTtm:number|null;pb:number|null;marketCapYi:number|null;tradeDate:string;tradeTime:string;inactive:boolean};
+export type Article = {title:string;content?:string;date:string;source:string;url:string;org?:string;author?:string;rating?:string;pdfUrl?:string;eps?:{year:number;value:number|null}[]};
+export type Bar = {date:string;open:number;high:number;low:number;close:number;volume:number};
+export type Daily = {bars:Bar[];adjust:string;ma:Record<string,number|null>;returns:Record<string,number|null>;volumeUnit:string};
+export type Financial = {metrics:{period:string|null;revenue:number|null;revenueYoy:number|null;netProfit:number|null;netProfitYoy:number|null;grossMargin:number|null;netMargin:number|null;cfo:number|null;cfoYoy:number|null;inventory:number|null;contractLiability:number|null;inventoryVsYearend?:number|null;contractVsYearend?:number|null};tables:Record<string,{status?:string;rows:Record<string,number|string|null>[];error?:string}>};
+export type Fund = {rows:{date:string;mainNet?:number|null;largeNet?:number|null;superNet?:number|null;netAmount?:number|null}[];sums:Record<string,number|null>|null;definition:string};
+export type Summary = {title:string;observations:{title:string;text:string;evidence:string}[];risks:string[];metrics:{pbLatest?:number|null;peTtmCalculated?:number|null;forecastYear?:number|null;epsMean?:number|null;forwardPe?:number|null};method:string;methodNote:string};
