@@ -1,0 +1,63 @@
+# A股研究台
+
+按股票名称或代码汇总公开市场数据、新闻和研报，在同一个页面查看数据日期、来源、口径和研究摘要。支持沪深北现行A股的名称与代码查询，具体数据覆盖由各来源决定。
+
+## 功能
+
+- 腾讯行情与250根前复权日线；均线、区间收益与价格图。
+- 新浪财报三表、同比、现金流、存货、合同负债及TTM利润；行情估值与财报重算估值。
+- 东财资金流，失败时尝试新浪不同口径的备用源。
+- 东财新闻短摘录、原文链接；东财和新浪研报合并，提供机构、评级、按年份标注的EPS和可用PDF链接。
+- 同花顺EPS机构预测汇总；固定规则生成事实摘要和待验证风险。
+- 每项数据独立返回成功、空记录或错误；保留日期、来源、缓存状态和错误说明。
+
+本网站实现原技能中的七类数据入口，并非其87个端点的完整移植。摘要不调用大模型，不自动推断公司业务或给出目标价。研报只索引公开信息和原文链接，不复制付费报告全文。
+
+## 开发与运行
+
+需要 Node.js >=22.13 和 npm。生产构建针对 Cloudflare Workers；GitHub Pages 无法运行这些动态API。Linux为推荐构建环境。
+
+```sh
+cd a-stock-research
+npm ci
+node --test tests/market.test.mjs
+node node_modules/typescript/bin/tsc --noEmit
+npm run dev
+npm run build
+```
+
+Windows沙箱不能启动workerd时，可运行 `npm run local` 使用Node本地服务，浏览器打开 `http://127.0.0.1:4173`。它使用同一个React页面和API处理函数，只监听本机，不替代云端访问控制。执行 `node scripts/local-server.mjs --check` 可验证真实HTTP页面、报价及中文搜索。
+
+开发页面默认使用5173端口。Windows开发使用Node预览，生产保留Cloudflare Worker入口。当前受限Windows环境的workerd启动和native realpath构建调用受限，已记录为环境限制；托管部署可使用远程构建。原始Python技能需要Python依赖，网站运行时不依赖Python或IWENCAI_API_KEY。
+
+真实来源复测：`node scripts/live-test.mjs`，结果写入 `verification/live-test.json`。接口边界验证：`node scripts/api-test.mjs`。实测记录来自2026-10-06，历史快照具有明确日期，页面打开后会逐项查询更新。
+
+## API
+
+GET `/api/search?q=东威科技` 搜索股票。
+
+GET `/api/research/688700` 返回七项数据和研究摘要。
+
+GET `/api/research/688700/{section}` 单独取数，section为：`quote`、`daily`、`financials`、`fund-flow`、`news`、`reports`、`forecast`。完整说明在网站 `/api/docs`。
+
+有效请求中上游错误仍可能返回HTTP200，必须检查每项 `status`：`ok`、`empty`、`error`。无效代码返回400，未知项目404。金额通常为人民币元；`marketCapYi`单位为亿元。`as_of`是数据日期；`fetched_at`是UTC抓取时间；报价另含北京时间戳。
+
+Sites部署默认为仅所有者可访问；API遵循同样的登录访问权限。支持登录后同源浏览器调用，当前没有单独发行外部机器客户端API密钥。
+
+## 研究方法与局限
+
+TTM利润＝上一年年报＋本期累计－上一年同期累计。只有当年EPS为正且不少于3家机构预测时计算预期PE。股票停牌或无有效报价时暂停价格估值判断。比较价格趋势前检查日线与报价日期。财报累计期间不可直接混为单季度。
+
+新闻按股票名称检索，可能包含行业相关内容；空结果不代表没有新闻。研报来源更新节奏可能不同，合并后仍需核对原文。同花顺均值不是业绩保证。大单与超大单分类不等于机构账户行为。
+
+北交所920代码报价支持已实测；腾讯北交所历史日线覆盖不足时明确显示错误。旧43/83/87代码可能冻结，要求通过公司名称查现行代码。行情在休市或节假日期间保持最近成交日，不能将抓取时间视为成交时间。
+
+东财在单实例内串行，间隔至少1.1秒加随机抖动；新浪研报间隔6.1秒。内存缓存不跨实例或重启持久化。公开源可能限流或因部署地区不可达；按需单用户查询适用。多用户、多实例扩展需要共享限流和缓存。
+
+## 上游与许可证
+
+来源：[simonlin1212/a-stock-data](https://github.com/simonlin1212/a-stock-data)，版本v3.10.0，提交 `f814dcfe209dd7958f4858f9d878d591ee85fb56`。
+
+`vendor/a-stock-data/SKILL.md`、`README.md`和`LICENSE`保留上游原文。SKILL.md SHA256：`4d23acf79e86be4241024759ba966d6a43fc5944b53019890ebd229807535cea`。`lib/market.mjs`是从相关嵌入Python代码改写的JavaScript适配器，改动包括返回结构、单位核对、缓存、限流、错误隔离和原文链接。上游Apache-2.0许可证保留于vendor目录；适配器与网站新增代码按Apache-2.0提供，框架及UI依赖遵循各自许可证。
+
+本项目作为独立仓库维护，网站与API代码位于仓库根目录，上游原始技能保存在 `vendor/a-stock-data/`。环境文件、依赖目录、短期凭证和构建缓存不提交。

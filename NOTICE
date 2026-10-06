@@ -1,0 +1,8 @@
+A股研究台 adapts selected embedded data functions from a-stock-data v3.10.0.
+Upstream: https://github.com/simonlin1212/a-stock-data
+Commit: f814dcfe209dd7958f4858f9d878d591ee85fb56
+License: Apache License 2.0; see vendor/a-stock-data/LICENSE.
+Original skill instructions and README are preserved byte-for-byte in vendor/a-stock-data.
+Changes: JavaScript HTTP adapters, normalized typed results, dates and units,
+source metadata, serial throttling, cache/error isolation, research rules,
+website interface and JSON HTTP endpoints.
