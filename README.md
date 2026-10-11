@@ -56,7 +56,7 @@ TTM利润＝上一年年报＋本期累计－上一年同期累计。只有当�
 
 ## 上游与许可证
 
-来源：[simonlin1212/a-stock-data](https://github.com/simonlin1212/a-stock-data)，版本v3.10.0，提交 `f814dcfe209dd7958f4858f9d878d591ee85fb56`。
+来源：[simonlin1212/a-stock-data](https://github.com/simonlin1212/a-stock-data)，版本v3.10.2，提交 `f814dcfe209dd7958f4858f9d878d591ee85fb56`。
 
 `vendor/a-stock-data/SKILL.md`、`README.md`和`LICENSE`保留上游原文。SKILL.md SHA256：`4d23acf79e86be4241024759ba966d6a43fc5944b53019890ebd229807535cea`。`lib/market.mjs`是从相关嵌入Python代码改写的JavaScript适配器，改动包括返回结构、单位核对、缓存、限流、错误隔离和原文链接。上游Apache-2.0许可证保留于vendor目录；适配器与网站新增代码按Apache-2.0提供，框架及UI依赖遵循各自许可证。
 
