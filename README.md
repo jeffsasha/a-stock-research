@@ -1,5 +1,10 @@
 # A股研究台
 
+[![TypeScript](https://img.shields.io/badge/Language-TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-19-149eca?style=flat-square&logo=react&logoColor=white)](https://react.dev/)
+[![Node.js 22.13 or newer](https://img.shields.io/badge/Node.js-22.13%2B-339933?style=flat-square&logo=nodedotjs&logoColor=white)](#开发与运行)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-2563eb?style=flat-square)](#上游与许可证)
+
 按股票名称或代码汇总公开市场数据、新闻和研报，在同一个页面查看数据日期、来源、口径和研究摘要。支持沪深北现行A股的名称与代码查询，具体数据覆盖由各来源决定。
 
 ## 功能
