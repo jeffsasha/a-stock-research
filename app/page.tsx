@@ -2,20 +2,19 @@
 import {useEffect,useRef,useState,type ComponentType} from "react";
 import dynamic from "next/dynamic";
 import {useTheme} from "next-themes";
-import {ArrowUpRight,ArrowRight,Search,Sun,Moon,Activity,ChevronRight,RefreshCw} from "lucide-react";
-import LineSidebarSource from "@/components/interaction/LineSidebar";
+import {ArrowUpRight,ArrowRight,Search,Sun,Moon,Activity,RefreshCw} from "lucide-react";
 import RubberSegmentSource from "@/components/interaction/RubberSegment";
 import {SignalHeadline} from "@/components/signal-headline";
 import type {Stock} from "@/lib/contracts";
 
+const GradientWaves=dynamic(()=>import("@/components/interaction/GradientWaves"),{ssr:false});
 const StockResearch=dynamic(()=>import("@/components/stock-research"),{loading:()=> <p className="empty-panel">正在打开研究台…</p>});
 // The supplied React Bits components are JSX. Keep a typed application boundary.
-const LineSidebar=LineSidebarSource as ComponentType<{items:string[];onItemClick:(index:number,label:string)=>void;accentColor:string;textColor:string;markerColor:string;markerLength:number;maxShift:number;fontSize:number;itemGap:number;defaultActive:number}>;
 type SegmentProps={items:{value:string;label:string}[];value:string;onChange:(value:string)=>void;"aria-label":string;trackColor:string;thumbColor:string;textColor:string;activeTextColor:string;size?:string};
 const RubberSegment=RubberSegmentSource as ComponentType<SegmentProps>;
 type Trend={code:string;market:string;name:string;rank:number;heat:number|null;changePct:number|null;tags:string[]};
 type HotList={status:string;items:Trend[];fetched_at:string;sources:{name:string;url:string}[];warnings:string[];error?:string};
-const segmentColors={trackColor:"var(--secondary)",thumbColor:"var(--foreground)",textColor:"var(--muted-foreground)",activeTextColor:"var(--background)"};
+const segmentColors={trackColor:"var(--secondary)",thumbColor:"var(--control-active)",textColor:"var(--muted-foreground)",activeTextColor:"var(--control-ink)"};
 
 async function json<T>(url:string,signal?:AbortSignal):Promise<T>{
   let r:Response;
@@ -59,18 +58,22 @@ export default function Home(){
     finally{if(!abort.signal.aborted)setSearching(false);}
   }
   const theme=mounted?(resolvedTheme||"dark"):"dark";
-  const scroll=(id:string)=>document.getElementById(id)?.scrollIntoView({behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"instant":"smooth"});
   return <div className="signal-site">
-    <header className="site-header"><a className="signal-brand" href="/" aria-label="A股研究台首页"><span className="signal-logo"><Activity size={21}/></span><span>Signal<span className="brand-dot">.</span><small>A股研究台</small></span></a><nav className="header-nav" aria-label="主导航"><a href="/#trending">市场趋势</a><a href="/api/docs">API <ArrowUpRight size={13}/></a></nav><div className="theme-switch"><span aria-hidden="true">{theme==="dark"?<Moon size={14}/>:<Sun size={14}/>}</span>{mounted?<RubberSegment items={[{value:"light",label:"浅色"},{value:"dark",label:"深色"}]} value={theme} onChange={setTheme} aria-label="外观主题" size="sm" {...segmentColors}/>:<span className="theme-placeholder"/>}</div></header>
+    <header className="site-header"><a className="signal-brand" href="/" aria-label="A股研究台首页"><span className="signal-logo"><Activity size={21}/></span><span>Signal<span className="brand-dot">.</span></span></a><nav className="header-nav" aria-label="主导航"><a href="/#trending">市场趋势</a><a href="/api/docs">API <ArrowUpRight size={13}/></a></nav><div className="theme-switch"><span aria-hidden="true">{theme==="dark"?<Moon size={14}/>:<Sun size={14}/>}</span>{mounted?<RubberSegment items={[{value:"light",label:"浅色"},{value:"dark",label:"深色"}]} value={theme} onChange={setTheme} aria-label="外观主题" size="sm" {...segmentColors}/>:<span className="theme-placeholder"/>}</div></header>
+    {!selected&&<div className="waves-layer" aria-hidden="true"><GradientWaves horizonColor={theme==="dark"?"#100b20":"#ddd5ef"} waveColor={theme==="dark"?"#35204f":"#b8a2dd"} crestColor={theme==="dark"?"#9c79c9":"#f3edff"} speed={0.18} amplitude={2.5} detail="low" brightness={theme==="dark"?0.85:0.95} opacity={theme==="dark"?0.75:0.65} fogDepth={45} mouseInteraction parallaxStrength={0.7} grainIntensity={0.025}/></div>}
     {selected?<StockResearch key={selected} initialCode={selected} onBack={back}/>:<>
-      <aside className="landing-nav"><span className="nav-caption">WORKSPACE</span><LineSidebar items={["探索市场","人气趋势","研究方法","开发者 API"]} defaultActive={0} onItemClick={i=>{if(i===3)window.location.assign("/api/docs");else scroll(["explore","trending","method"][i]);}} accentColor="var(--primary)" textColor="var(--muted-foreground)" markerColor="var(--border)" markerLength={24} maxShift={9} fontSize={.8} itemGap={24}/><span className="nav-bottom">独立研究，清晰决策。</span></aside>
       <main className="landing-main">
-        <section className="hero" id="explore"><div className="hero-grid" aria-hidden="true"/><div className="hero-kicker"><span className="live-pip"/> YOUR SIGNAL IN THE NOISE</div><SignalHeadline/><p className="hero-copy">从一家公司开始，连接行情、财务与市场观点。<br className="desktop-break"/>把分散的信息，变成有依据的研究。</p>
-          <div className="hero-search-wrap"><form className="hero-search" onSubmit={e=>{e.preventDefault();void search();}}><Search size={23} aria-hidden="true"/><input ref={input} aria-label="搜索A股公司名称或股票代码" placeholder="搜索公司名称或 6 位股票代码" value={query} maxLength={30} onChange={e=>setQuery(e.target.value)} autoComplete="off"/><button type="submit" disabled={searching}>{searching?"查询中…":"开始研究"}<ArrowRight size={17}/></button></form><div className="search-hint"><span>沪 · 深 · 北 / 现行 A 股</span><span>公开数据 · 来源可追溯</span></div>
+        <section className="hero" id="explore" onPointerMove={e=>{
+          if(e.pointerType!=="mouse"||window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+          const r=e.currentTarget.getBoundingClientRect();
+          e.currentTarget.style.setProperty("--hero-x",`${((e.clientX-r.left)/r.width-.5)*12}px`);
+          e.currentTarget.style.setProperty("--hero-y",`${((e.clientY-r.top)/r.height-.5)*10}px`);
+        }} onPointerLeave={e=>{e.currentTarget.style.setProperty("--hero-x","0px");e.currentTarget.style.setProperty("--hero-y","0px");}}><SignalHeadline/>
+          <div className="hero-search-wrap"><form className="hero-search" onSubmit={e=>{e.preventDefault();void search();}}><Search size={23} aria-hidden="true"/><input ref={input} aria-label="搜索A股公司名称或股票代码" placeholder="搜索公司名称或 6 位股票代码" value={query} maxLength={30} onChange={e=>setQuery(e.target.value)} autoComplete="off"/><button type="submit" disabled={searching}>{searching?"查询中…":"开始研究"}<ArrowRight size={17}/></button></form>
           {searchError&&<p className="landing-error" role="alert">{searchError}</p>}{results.length>0&&<div className="search-results" aria-label="匹配股票">{results.map(x=><button key={x.code} onClick={()=>open(x.code)}><span>{x.name}<small>{x.market.toUpperCase()} · {x.code}</small></span><ArrowUpRight size={18}/></button>)}</div>}</div>
-          <div className="hero-capabilities"><span>行情与估值</span><i/><span>财务与资金</span><i/><span>资讯与研报</span></div><a href="#trending" className="explore-link">探索市场正在关注什么 <span>↓</span></a>
+          <a href="#trending" className="scroll-cue" aria-label="查看市场热榜">↓</a>
         </section>
-        <section id="trending" className="trending-section"><div className="section-heading"><div><div className="section-kicker">THE MARKET PULSE</div><h2>市场正在关注<span className="accent-dot">.</span></h2><p>跟随人气线索，开启下一次研究。</p></div><RubberSegment items={[{value:"hour",label:"小时榜"},{value:"day",label:"日榜"}]} value={period} onChange={setPeriod} aria-label="热榜周期" {...segmentColors}/></div>
+        <section id="trending" className="trending-section"><div className="section-heading"><div><h2>市场正在关注<span className="accent-dot">.</span></h2></div><RubberSegment items={[{value:"hour",label:"小时榜"},{value:"day",label:"日榜"}]} value={period} onChange={setPeriod} aria-label="热榜周期" {...segmentColors}/></div>
           <div className="trend-table" aria-busy={hotBusy}><div className="trend-table-head"><span>人气排名 / 公司</span><span>概念线索</span><span>涨跌幅</span><span/></div>
           {hotBusy&&<div className="trend-loading" role="status">正在读取市场人气榜<span className="loading-dots">…</span></div>}
           {hotError&&<div className="trend-loading"><p role="alert">{hotError}</p><button className="text-button" onClick={()=>setRetry(x=>x+1)}><RefreshCw size={14}/>重新加载</button></div>}
@@ -78,8 +81,7 @@ export default function Home(){
           {hot?.status==="empty"&&<div className="trend-loading">数据源本次未返回排名，请稍后重试。</div>}</div>
           <div className="trend-source"><span>{hot?.sources?.map(s=><a key={s.url} href={s.url} target="_blank" rel="noopener noreferrer">{s.name}</a>)}{hot?.fetched_at&&<> · 抓取于 {new Date(hot.fetched_at).toLocaleString("zh-CN",{timeZone:"Asia/Shanghai",hour12:false})}（北京时间）</>}</span><button className="text-button" disabled={hotBusy} onClick={()=>setRetry(x=>x+1)} aria-label="重新读取热榜"><RefreshCw size={13}/></button></div><p className="trend-disclaimer">人气排名不代表涨幅排名或投资建议。来源未提供榜单生成时间，涨跌幅以来源返回为准。</p>{hot?.warnings?.map(w=><p className="trend-disclaimer" key={w}>{w}</p>)}
         </section>
-        <section className="method-section" id="method"><div className="section-kicker">FROM SIGNAL TO CONVICTION</div><h2>让判断，有迹可循。</h2><div className="method-grid">{[["01","找到线索","从市场人气、公司新闻与机构研报，找到值得跟进的问题。"],["02","交叉验证","对照盈利、经营回款与估值，检查观点是否得到数据支持。"],["03","保留边界","看清数据日期、来源与缺失项。事实摘要和待验证风险分别呈现。"]].map(([n,title,copy])=><article key={n}><span>{n}</span><h3>{title}</h3><p>{copy}</p></article>)}</div><a className="developer-link" href="/api/docs"><span><small>BUILD WITH SIGNAL</small>同一套数据，也可通过 API 获取。</span><ChevronRight size={22}/></a></section>
-        <footer className="landing-footer"><span>Signal. A股研究台</span><span>基于 a-stock-data · 公开信息研究参考</span><a href="https://github.com/jeffsasha/a-stock-research" target="_blank" rel="noopener noreferrer">GitHub <ArrowUpRight size={12}/></a></footer>
+        <footer className="landing-footer"><span>Signal.</span><a href="https://github.com/jeffsasha/a-stock-research" target="_blank" rel="noopener noreferrer">GitHub <ArrowUpRight size={12}/></a></footer>
       </main>
     </>}
   </div>;

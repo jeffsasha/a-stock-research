@@ -1,0 +1,4 @@
+.gradient-waves-container{position:relative;width:100%;height:100%;overflow:hidden;background:radial-gradient(ellipse at 20% 72%,var(--wave-fallback),transparent 60%),radial-gradient(ellipse at 80% 20%,var(--wave-fallback),transparent 55%)}
+.gradient-waves-container[data-rendering=fallback]{background-size:150% 150%;animation:wave-drift 16s ease-in-out infinite alternate}
+@keyframes wave-drift{from{background-position:0% 30%}to{background-position:100% 75%}}
+@media(prefers-reduced-motion:reduce){.gradient-waves-container{animation:none!important}}

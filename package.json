@@ -38,7 +38,8 @@
     "tailwind-merge": "3.6.0",
     "vaul": "^1.1.2",
     "zod": "^3.25.76",
-    "motion": "^12.23.0"
+    "motion": "^12.23.0",
+    "ogl": "^1.0.11"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.37.1",
