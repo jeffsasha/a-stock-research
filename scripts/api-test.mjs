@@ -1,16 +1,8 @@
 // Validate the actual GET handlers independently of the Windows workerd host.
-import ts from 'typescript';
-import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
-import {pathToFileURL} from 'node:url';
-import {resolve} from 'node:path';
+import {writeFileSync,mkdirSync} from 'node:fs';
+import {handleApi} from '../lib/api.mjs';
 import assert from 'node:assert/strict';
-async function handler(file){
-  const source=readFileSync(file,'utf8').replaceAll('@/lib/market.mjs',pathToFileURL(resolve('lib/market.mjs')).href);
-  const js=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;
-  return (await import('data:text/javascript;base64,'+Buffer.from(js).toString('base64'))).GET;
-}
-const stock=await handler('app/api/research/[code]/[[...section]]/route.ts');
-const search=await handler('app/api/search/route.ts');
+const stock=handleApi,search=handleApi;
 const context=(code,section)=>({params:Promise.resolve({code,section})});
 const result={tested_at:new Date().toISOString(),checks:[]};
 async function check(name,fn){await fn();result.checks.push({name,status:'PASS'});console.log('PASS',name);}

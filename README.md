@@ -11,6 +11,9 @@
 
 ## 功能
 
+- Next.js App Router 搜索首页、霓虹灯点亮标题、真实人气趋势、持久化明暗主题；首页不预加载任何指定股票。
+- 同花顺小时/日人气榜；失败时尝试东方财富当前人气榜＋腾讯行情，明确说明备用源周期与数据时间。
+
 - 腾讯行情与250根前复权日线；均线、区间收益与价格图。
 - 新浪财报三表、同比、现金流、存货、合同负债及TTM利润；行情估值与财报重算估值。
 - 东财资金流，失败时尝试新浪不同口径的备用源。
@@ -22,26 +25,33 @@
 
 ## 开发与运行
 
-需要 Node.js >=22.13 和 npm。生产构建针对 Cloudflare Workers；GitHub Pages 无法运行这些动态API。Linux为推荐构建环境。
+需要 Node.js >=22.13 和 npm。使用真实 Next.js 构建静态前端，动态市场 API 由同包 Cloudflare Worker 提供。GitHub Pages 单独托管不能运行这些 API。
 
-Windows首次运行：先安装包含npm的Node.js，重新打开PowerShell；进入包含`package.json`的解压目录后执行命令。若PowerShell限制`npm.ps1`，使用`npm.cmd ci`和`npm.cmd run local`；不需要管理员权限或修改执行策略。
+Windows首次运行：安装包含npm的Node.js，重新打开PowerShell，进入含`package.json`的项目目录；不需要管理员权限。若PowerShell限制`npm.ps1`，使用`npm.cmd`。
 
 ```sh
 cd a-stock-research
 npm ci
 npm test
-node node_modules/typescript/bin/tsc --noEmit
 npm run dev
-npm run build
 ```
 
-Windows沙箱不能启动workerd时，可运行 `npm run local` 使用Node本地服务，浏览器打开 `http://127.0.0.1:4173`。它使用同一个React页面和API处理函数，只监听本机，不替代云端访问控制。执行 `node scripts/local-server.mjs --check` 可验证真实HTTP页面、报价及中文搜索。
+打开 `http://127.0.0.1:4173`。开发模式运行真正的 Next.js 服务，同一个 Node 主机处理市场API。生产预览：
 
-开发页面默认使用5173端口。Windows开发使用Node预览，生产保留Cloudflare Worker入口。当前受限Windows环境的workerd启动和native realpath构建调用受限，已记录为环境限制；托管部署可使用远程构建。原始Python技能需要Python依赖，网站运行时不依赖Python或IWENCAI_API_KEY。
+```sh
+npm run build
+npm run local
+```
+
+`npm run build`执行`next build --webpack`，导出前端到`out/`，并打包实时API Worker到`dist/server/index.js`、前端资源到`dist/client/`。`npm run local`直接预览构建结果，仍提供真实API；可运行`node scripts/local-server.mjs --check`进行HTTP检查。原始Python技能需要Python依赖，网站运行时不依赖Python或IWENCAI_API_KEY。
+
+标题动画为独立实现的CSS霓虹灯点亮效果，未安装或复制需要许可证的React Bits Pro Signal Type。LineSidebar和RubberSegment根据用户提供的React Bits JSX/CSS接入，RubberSegment使用motion；支持键盘操作及减少动画设置，无需REACTBITS_LICENSE_KEY。主题使用next-themes保存在本地。
 
 真实来源复测：`node scripts/live-test.mjs`，结果写入 `verification/live-test.json`，任一请求的数据类别失败都会使检查失败。接口边界验证：`node scripts/api-test.mjs`。最新测试时间见各JSON的`tested_at`；历史快照具有明确日期，页面打开后会逐项查询更新。
 
 ## API
+
+GET `/api/trending?period=hour` 返回真实人气榜（`day`为日榜）。返回排名、股票、概念、涨跌幅、来源和抓取时间；无生成时间时`as_of=null`。
 
 GET `/api/search?q=东威科技` 搜索股票。
 
