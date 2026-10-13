@@ -18,7 +18,9 @@ type HotList={status:string;items:Trend[];fetched_at:string;sources:{name:string
 const segmentColors={trackColor:"var(--secondary)",thumbColor:"var(--foreground)",textColor:"var(--muted-foreground)",activeTextColor:"var(--background)"};
 
 async function json<T>(url:string,signal?:AbortSignal):Promise<T>{
-  const r=await fetch(url,{signal:signal?AbortSignal.any([signal,AbortSignal.timeout(60000)]):AbortSignal.timeout(60000)});
+  let r:Response;
+  try{r=await fetch(url,{signal:signal?AbortSignal.any([signal,AbortSignal.timeout(60000)]):AbortSignal.timeout(60000)});}
+  catch(e){if(e instanceof Error&&e.name==="TimeoutError")throw Error("请求超时，请重试。数据源可能暂时不可用。");throw e;}
   if(!r.headers.get("content-type")?.includes("application/json"))throw Error("服务暂时不可用，请稍后重试。");
   const data=await r.json() as T & {error?:string};if(!r.ok)throw Error(data.error||"查询失败");return data;
 }
@@ -41,7 +43,7 @@ export default function Home(){
   useEffect(()=>{
     if(selected)return;
     const abort=new AbortController();setHotBusy(true);setHot(null);setHotError("");
-    json<HotList>(`/api/trending?period=${period}`,abort.signal).then(setHot).catch(e=>{if(!abort.signal.aborted)setHotError(e.message);}).finally(()=>{if(!abort.signal.aborted)setHotBusy(false);});
+    json<HotList>(`/api/trending?period=${period}`,abort.signal).then(data=>{if(!abort.signal.aborted)setHot(data);}).catch(e=>{if(!abort.signal.aborted)setHotError(e.message);}).finally(()=>{if(!abort.signal.aborted)setHotBusy(false);});
     return ()=>abort.abort();
   },[period,retry,selected]);
   async function search(){
