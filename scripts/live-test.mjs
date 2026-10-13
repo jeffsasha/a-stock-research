@@ -11,7 +11,9 @@ await check('沪深北报价',async()=>{
   const all=[];for(const code of ['688700','600519','000001','920982'])all.push(await getPart(code,'quote'));return all;
 },x=>{if(x.some(p=>p.status!=='ok'||!(p.data.price>0)))throw new Error('某市场报价不可用');});
 await check('688700七类实时接口与研究摘要',()=>research('688700'),x=>{
-  for(const [name,p] of Object.entries(x.parts)){if(p.status==='error')result.warnings.push(name+': '+p.error);}
+  const failed=Object.entries(x.parts).filter(([,p])=>p.status==='error');
+  for(const [name,p] of failed)result.warnings.push(name+': '+p.error);
+  if(failed.length)throw new Error('数据类别不可用：'+failed.map(([name])=>name).join('、'));
   if(x.parts.quote.status!=='ok'||x.parts.daily.status!=='ok'||x.parts.financials.status!=='ok'||x.parts.news.status!=='ok'||x.parts.reports.status!=='ok')throw new Error('核心数据类别不可用');
   if(x.parts.daily.data.bars.length<60)throw new Error('历史日线不足60根');
   if(x.parts.daily.as_of!==x.parts.quote.as_of)throw new Error('行情日期不一致');

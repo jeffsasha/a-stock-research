@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {normalizeTicker,number,parseQuote,parseDaily,parseFinancial,parseForecast,parseSinaReports,parseNews,safeUrl,financialMetrics,summarize} from '../lib/market.mjs';
+import {normalizeTicker,number,parseQuote,parseDaily,parseFinancial,parseForecast,parseSinaReports,parseNews,safeUrl,financialMetrics,summarize,getPart} from '../lib/market.mjs';
 const read=(n,e='utf8')=>readFileSync(new URL('./fixtures/'+n,import.meta.url),e);
 const t=normalizeTicker('688700');
 test('reject contradictory markets, indices, funds, truncated and retired codes',()=>{
@@ -54,4 +54,16 @@ test('summary will not fabricate forecasts or compute valuation from inactive qu
   const s=summarize({quote:{status:'ok',data:{inactive:true,price:60,tradeDate:'2026-09-30'}}});
   assert.equal(s.metrics.forwardPe,undefined);assert.ok(s.risks.some(x=>x.includes('停牌')));
   assert.ok(s.risks.some(x=>x.includes('未取得')));
+});
+test('plain JSON news keeps parentheses in article text',()=>{
+  const rows=parseNews(JSON.stringify({result:{cmsArticleWebOld:[{title:'公司（更新）与产品 (新品)',content:'正文',url:'https://finance.example.com/article'}]}}));
+  assert.equal(rows.length,1);
+  assert.equal(rows[0].title,'公司（更新）与产品 (新品)');
+});
+test('provider connection failures identify the failing host',async context=>{
+  context.mock.method(globalThis,'fetch',async()=>{throw new TypeError('fetch failed',{cause:{code:'ECONNRESET'}});});
+  const result=await getPart('600000','forecast');
+  assert.equal(result.status,'error');
+  assert.match(result.error,/basic\.10jqka\.com\.cn/);
+  assert.match(result.error,/ECONNRESET/);
 });
