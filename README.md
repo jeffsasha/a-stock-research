@@ -1,5 +1,7 @@
 # A股研究台
 
+**网站：[打开 A股研究台](https://a-stock-research-jeffsasha.qxavi.chatgpt.site)**（使用站点所有者的 ChatGPT 账号登录）。
+
 [![TypeScript](https://img.shields.io/badge/Language-TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19-149eca?style=flat-square&logo=react&logoColor=white)](https://react.dev/)
 [![Node.js 22.13 or newer](https://img.shields.io/badge/Node.js-22.13%2B-339933?style=flat-square&logo=nodedotjs&logoColor=white)](#开发与运行)
@@ -13,7 +15,7 @@
 - 新浪财报三表、同比、现金流、存货、合同负债及TTM利润；行情估值与财报重算估值。
 - 东财资金流，失败时尝试新浪不同口径的备用源。
 - 东财新闻短摘录、原文链接；东财和新浪研报合并，提供机构、评级、按年份标注的EPS和可用PDF链接。
-- 同花顺EPS机构预测汇总；固定规则生成事实摘要和待验证风险。
+- 同花顺EPS机构预测汇总；该来源不可用时，统计近一年公开研报中每家机构、每个年份的最新EPS样本，并标注为研报样本，不冒充完整一致预期。固定规则生成事实摘要和待验证风险。
 - 每项数据独立返回成功、空记录或错误；保留日期、来源、缓存状态和错误说明。
 
 本网站实现原技能中的七类数据入口，并非其87个端点的完整移植。摘要不调用大模型，不自动推断公司业务或给出目标价。研报只索引公开信息和原文链接，不复制付费报告全文。
@@ -22,10 +24,12 @@
 
 需要 Node.js >=22.13 和 npm。生产构建针对 Cloudflare Workers；GitHub Pages 无法运行这些动态API。Linux为推荐构建环境。
 
+Windows首次运行：先安装包含npm的Node.js，重新打开PowerShell；进入包含`package.json`的解压目录后执行命令。若PowerShell限制`npm.ps1`，使用`npm.cmd ci`和`npm.cmd run local`；不需要管理员权限或修改执行策略。
+
 ```sh
 cd a-stock-research
 npm ci
-node --test tests/market.test.mjs
+npm test
 node node_modules/typescript/bin/tsc --noEmit
 npm run dev
 npm run build
@@ -35,7 +39,7 @@ Windows沙箱不能启动workerd时，可运行 `npm run local` 使用Node本地
 
 开发页面默认使用5173端口。Windows开发使用Node预览，生产保留Cloudflare Worker入口。当前受限Windows环境的workerd启动和native realpath构建调用受限，已记录为环境限制；托管部署可使用远程构建。原始Python技能需要Python依赖，网站运行时不依赖Python或IWENCAI_API_KEY。
 
-真实来源复测：`node scripts/live-test.mjs`，结果写入 `verification/live-test.json`。接口边界验证：`node scripts/api-test.mjs`。实测记录来自2026-10-06，历史快照具有明确日期，页面打开后会逐项查询更新。
+真实来源复测：`node scripts/live-test.mjs`，结果写入 `verification/live-test.json`，任一请求的数据类别失败都会使检查失败。接口边界验证：`node scripts/api-test.mjs`。最新测试时间见各JSON的`tested_at`；历史快照具有明确日期，页面打开后会逐项查询更新。
 
 ## API
 

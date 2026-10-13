@@ -1,10 +1,10 @@
 {
-  "tested_at": "2026-10-13T04:29:21.703Z",
+  "tested_at": "2026-10-13T04:41:06.358Z",
   "checks": [
     {
       "name": "中文名称搜索",
       "status": "PASS",
-      "seconds": 1.028,
+      "seconds": 1.646,
       "evidence": [
         {
           "code": "688700"
@@ -14,7 +14,7 @@
     {
       "name": "沪深北报价",
       "status": "PASS",
-      "seconds": 1.654,
+      "seconds": 2.863,
       "evidence": [
         {
           "code": "688700",
@@ -53,7 +53,7 @@
     {
       "name": "688700七类实时接口与研究摘要",
       "status": "PASS",
-      "seconds": 6.062,
+      "seconds": 6.258,
       "evidence": {
         "code": "688700",
         "channels": {
@@ -73,17 +73,17 @@
             "as_of": "2026-10-12",
             "warnings": []
           },
-          "financials": {
-            "status": "ok",
-            "as_of": "2026-06-30",
-            "warnings": []
-          },
           "forecast": {
             "status": "ok",
             "as_of": "2026-10-13",
             "warnings": [
               "机构预测不是公司承诺或已实现盈利。"
             ]
+          },
+          "financials": {
+            "status": "ok",
+            "as_of": "2026-06-30",
+            "warnings": []
           },
           "reports": {
             "status": "ok",
@@ -150,7 +150,7 @@
     {
       "name": "600519资讯与研报",
       "status": "PASS",
-      "seconds": 7.072,
+      "seconds": 6.642,
       "evidence": {
         "news": {
           "status": "ok",

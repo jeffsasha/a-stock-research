@@ -67,3 +67,25 @@ test('provider connection failures identify the failing host',async context=>{
   assert.match(result.error,/basic\.10jqka\.com\.cn/);
   assert.match(result.error,/ECONNRESET/);
 });
+test('forecast fallback counts each institution once using its latest report',async context=>{
+  const date=new Date().toISOString().slice(0,10);
+  const rows=[
+    {stockCode:'600001',infoCode:'AP100',title:'最新A',orgSName:'机构A',publishDate:date,predictThisYearEps:1.2},
+    {stockCode:'600001',infoCode:'AP101',title:'最新B',orgSName:'机构B',publishDate:date,predictThisYearEps:0.8},
+    {stockCode:'600001',infoCode:'AP102',title:'旧A',orgSName:'机构A',publishDate:date.slice(0,4)+'-01-01',predictThisYearEps:9},
+  ];
+  context.mock.method(globalThis,'fetch',async input=>{
+    const host=new URL(input).hostname;
+    if(host==='basic.10jqka.com.cn')throw new TypeError('fetch failed',{cause:{code:'ECONNRESET'}});
+    if(host==='reportapi.eastmoney.com')return Response.json({data:rows});
+    if(host==='stock.finance.sina.com.cn')return new Response(read('sina-reports.html'));
+    throw new Error('Unexpected provider '+host);
+  });
+  const result=await getPart('600001','forecast');
+  assert.equal(result.status,'ok');
+  const year=result.data.rows.find(row=>row.year===Number(date.slice(0,4)));
+  assert.deepEqual(year,{year:Number(date.slice(0,4)),institutions:2,min:0.8,mean:1,max:1.2});
+  assert.equal(result.as_of,date);
+  assert.ok(result.warnings.some(text=>text.includes('研报样本')));
+  assert.ok(result.warnings.some(text=>text.includes('basic.10jqka.com.cn')));
+});
