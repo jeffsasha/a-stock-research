@@ -43,8 +43,6 @@ npm run local
 
 `npm run build`执行`next build --webpack`，导出前端到`out/`，并打包实时API Worker到`dist/server/index.js`、前端资源到`dist/client/`。`npm run local`直接预览构建结果，仍提供真实API；可运行`node scripts/local-server.mjs --check`进行HTTP检查。原始Python技能需要Python依赖，网站运行时不依赖Python或IWENCAI_API_KEY。
 
-标题动画为独立实现的CSS霓虹灯点亮效果，未安装或复制需要许可证的React Bits Pro Signal Type。GradientWaves和RubberSegment根据用户提供的React Bits JSX/CSS接入，分别使用ogl和motion；支持键盘操作及减少动画设置，无需REACTBITS_LICENSE_KEY。主题使用next-themes保存在本地。背景包含WebGL波浪与鼠标视差；无WebGL时降级为CSS背景，减少动画设置下停止动效。
-
 真实来源复测：`node scripts/live-test.mjs`，结果写入 `verification/live-test.json`，任一请求的数据类别失败都会使检查失败。接口边界验证：`node scripts/api-test.mjs`。最新测试时间见各JSON的`tested_at`；历史快照具有明确日期，页面打开后会逐项查询更新。
 
 ## API
